@@ -15,8 +15,10 @@ app.use((req, res, next) => {
   next();
 })
 
+const authRoutes = require('./routes/auth');
 const messageRoutes = require('./routes/message');
 
+app.use('/auth', authRoutes);
 app.use('/messages', messageRoutes);
 
 
