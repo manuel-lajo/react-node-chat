@@ -7,6 +7,7 @@ import './ChatPanel.css';
 class ChatPanel extends Component {
   state = {
     messages: [],
+    message: '',
     loading: true
   };
 
@@ -38,25 +39,29 @@ class ChatPanel extends Component {
     });
   };
 
-  showSampleMessageHandler = () => {
-    this.setState(prevState => {
-      let messages = [...prevState.messages];
-      messages = messages.map(el => ({ ...el }));
-      const timeStamp = `${new Date().toDateString()} - ${new Date().toTimeString()}`;
-      messages.unshift({
-        client: 'Manuel',
-        content: 'hi everyone! (local frontend message)',
-        timeStamp
-      });
-      return { messages };
-    });
+  inputMessageHandler = event => {
+    this.setState({ message: event.target.value });
   }
 
-  storeSampleMessageHandler = () => {
+  keyPressHandler = event => {
+    if (event.key === 'Enter' && this.state.message.trim() !== ''){
+      this.sendMessage();
+      this.setState({ message: '' });
+    }
+  }
+
+  clickButtonHandler = () => {
+    if (this.state.message.trim() !== ''){
+      this.sendMessage();
+      this.setState({ message: '' });
+    }
+  }
+
+  sendMessage = () => {
     axios
     .post('http://localhost:7000/messages', {
-      client: 'Manuel',
-      content: 'hi everyone! (send to backend and retrieved for all clients with socket.io)'
+      client: 'Max',
+      content: this.state.message.trim()
     })
     .then(response => {
       console.log(response.data);
@@ -88,8 +93,13 @@ class ChatPanel extends Component {
     return (
       <div>
         {messages}
-        <button className="button" onClick={this.showSampleMessageHandler}>Show Sample Message</button>
-        <button className="button" onClick={this.storeSampleMessageHandler}>Store Sample Message</button>
+        <input className="chat-input"
+          type="text"
+          placeholder="write message..."
+          value={this.state.message}
+          onChange={this.inputMessageHandler}
+          onKeyPress={this.keyPressHandler} />
+        <button className="chat-button" onClick={this.clickButtonHandler}>Send</button>
       </div>
     );
   }
