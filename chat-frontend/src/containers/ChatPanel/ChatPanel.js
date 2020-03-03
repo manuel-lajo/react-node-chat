@@ -8,10 +8,43 @@ class ChatPanel extends Component {
   state = {
     messages: [],
     message: '',
-    loading: true
+    loading: true,
+    isAuth: false,
+    userId: null,
+    token: null
   };
 
   componentDidMount() {
+    axios
+    .post('http://localhost:7000/auth/login', {
+      userId: 'javier',
+      password: 'jobsity123'
+    })
+    .then(response => {
+      if (response.status === 422) {
+        throw new Error('Validation failed.');
+      }
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error('Could not authenticate you!');
+      }
+      return { token: response.data.token, userId: response.data.userId };
+    })
+    .then(loginData => {
+      this.setState({
+        isAuth: true,
+        token: loginData.token,
+        userId: loginData.userId
+      });
+      localStorage.setItem('token', loginData.token);
+      localStorage.setItem('userId', loginData.userId);
+    })
+    .catch(error => {
+      console.log(error);
+      this.setState({
+        isAuth: false
+      });
+    });
+
     axios
     .get('http://localhost:7000/messages')
     .then(response => {
@@ -28,6 +61,7 @@ class ChatPanel extends Component {
         this.addMessage(data.newMessage);
       }
     });
+
   }
 
   addMessage = newMessage => {
@@ -38,6 +72,25 @@ class ChatPanel extends Component {
       return { messages };
     });
   };
+
+  sendMessage = () => {
+    axios
+    .post('http://localhost:7000/messages', {
+      client: this.state.userId,
+      content: this.state.message.trim()
+    },
+    {
+      headers: {
+        Authorization: 'Bearer ' + this.state.token
+      }
+    })
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
 
   inputMessageHandler = event => {
     this.setState({ message: event.target.value });
@@ -55,20 +108,6 @@ class ChatPanel extends Component {
       this.sendMessage();
       this.setState({ message: '' });
     }
-  }
-
-  sendMessage = () => {
-    axios
-    .post('http://localhost:7000/messages', {
-      client: 'Max',
-      content: this.state.message.trim()
-    })
-    .then(response => {
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.log(error);
-    });
   }
 
   render() {

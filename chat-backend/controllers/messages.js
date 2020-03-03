@@ -20,7 +20,7 @@ exports.postMessage = (req, res) => {
     .save()
     .then(newMessage => {
       io.getIO().emit('messages', { action: 'new', newMessage });
-      res.status(200).json({ message: 'message stored successfully' });
+      res.status(200).json({ message: 'Message stored successfully.' });
     })
     .catch(err => {
       console.log(err);
