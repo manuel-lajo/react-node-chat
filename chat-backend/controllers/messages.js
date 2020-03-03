@@ -1,21 +1,28 @@
+const Message = require('../models/message');
 const io = require('../socket');
 
-const timeStamp = `${new Date().toDateString()} - ${new Date().toTimeString()}`;
-const messages = [
-  { client: 'Max', content: 'I am fine, thanks John!', timeStamp },
-  { client: 'John', content: 'Max, how are you doing?', timeStamp },
-  { client: 'Max', content: 'hi John!', timeStamp },
-];
-
 exports.getMessages = (req, res) => {
-  res.json(messages);
+  Message.find()
+  .limit(500)
+  .sort('-timeStamp')
+  .then(messages => {
+    messages.sort((a, b) => b.timeStamp - a.timeStamp);
+    res.json(messages)
+  })
+  .catch(err => {
+    console.log(err);
+  });
 };
 
 exports.postMessage = (req, res) => {
-  const newMessage = req.body;
-  newMessage.timeStamp = `${new Date().toDateString()} - ${new Date().toTimeString()}`;
-  messages.unshift(newMessage);
-
-  io.getIO().emit('messages', { action: 'new', newMessage });
-  res.status(200).json({ message: 'message stored successfully' });
+  const newMessage = new Message(req.body);
+  newMessage
+    .save()
+    .then(newMessage => {
+      io.getIO().emit('messages', { action: 'new', newMessage });
+      res.status(200).json({ message: 'message stored successfully' });
+    })
+    .catch(err => {
+      console.log(err);
+    });
 };
