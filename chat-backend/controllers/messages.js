@@ -1,3 +1,4 @@
+const io = require('../socket');
 
 const timeStamp = `${new Date().toDateString()} - ${new Date().toTimeString()}`;
 const messages = [
@@ -8,4 +9,13 @@ const messages = [
 
 exports.getMessages = (req, res) => {
   res.json(messages);
+};
+
+exports.postMessage = (req, res) => {
+  const newMessage = req.body;
+  newMessage.timeStamp = `${new Date().toDateString()} - ${new Date().toTimeString()}`;
+  messages.unshift(newMessage);
+
+  io.getIO().emit('messages', { action: 'new', newMessage });
+  res.status(200).json({ message: 'message stored successfully' });
 };

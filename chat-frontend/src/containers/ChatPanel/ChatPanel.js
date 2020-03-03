@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
+import axios from 'axios';
+import openSocket from 'socket.io-client';
 
 import './ChatPanel.css';
-import axios from 'axios';
 
 class ChatPanel extends Component {
   state = {
@@ -20,19 +21,48 @@ class ChatPanel extends Component {
     .catch(error => {
       console.log(error);
     });
+    const socket = openSocket('http://localhost:7000');
+    socket.on('messages', data => {
+      if (data.action === 'new') {
+        this.addMessage(data.newMessage);
+      }
+    });
   }
 
-  sampleMessageHandler = () => {
+  addMessage = newMessage => {
+    this.setState(prevState => {
+      let messages = [...prevState.messages];
+      messages = messages.map(el => ({ ...el }));
+      messages.unshift(newMessage);
+      return { messages };
+    });
+  };
+
+  showSampleMessageHandler = () => {
     this.setState(prevState => {
       let messages = [...prevState.messages];
       messages = messages.map(el => ({ ...el }));
       const timeStamp = `${new Date().toDateString()} - ${new Date().toTimeString()}`;
       messages.unshift({
         client: 'Manuel',
-        content: 'hi everyone!',
+        content: 'hi everyone! (local frontend message)',
         timeStamp
       });
       return { messages };
+    });
+  }
+
+  storeSampleMessageHandler = () => {
+    axios
+    .post('http://localhost:7000/messages', {
+      client: 'Manuel',
+      content: 'hi everyone! (send to backend and retrieved for all clients with socket.io)'
+    })
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.log(error);
     });
   }
 
@@ -58,7 +88,8 @@ class ChatPanel extends Component {
     return (
       <div>
         {messages}
-        <button className="button" onClick={this.sampleMessageHandler}>Add Sample Message</button>
+        <button className="button" onClick={this.showSampleMessageHandler}>Show Sample Message</button>
+        <button className="button" onClick={this.storeSampleMessageHandler}>Store Sample Message</button>
       </div>
     );
   }
