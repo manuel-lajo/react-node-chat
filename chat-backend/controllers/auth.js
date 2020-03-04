@@ -33,7 +33,7 @@ exports.login = (req, res, next) => {
   User.findOne({ userId })
     .then(user => {
       if (!user) {
-        const error = new Error('A user with this userId could not be found.');
+        const error = new Error('A user with this UserID could not be found.');
         error.statusCode = 401;
         throw error;
       }

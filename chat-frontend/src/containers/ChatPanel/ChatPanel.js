@@ -8,43 +8,10 @@ class ChatPanel extends Component {
   state = {
     messages: [],
     message: '',
-    loading: true,
-    isAuth: false,
-    userId: null,
-    token: null
+    loading: true
   };
 
   componentDidMount() {
-    axios
-    .post('http://localhost:7000/auth/login', {
-      userId: 'javier',
-      password: 'jobsity123'
-    })
-    .then(response => {
-      if (response.status === 422) {
-        throw new Error('Validation failed.');
-      }
-      if (response.status !== 200 && response.status !== 201) {
-        throw new Error('Could not authenticate you!');
-      }
-      return { token: response.data.token, userId: response.data.userId };
-    })
-    .then(loginData => {
-      this.setState({
-        isAuth: true,
-        token: loginData.token,
-        userId: loginData.userId
-      });
-      localStorage.setItem('token', loginData.token);
-      localStorage.setItem('userId', loginData.userId);
-    })
-    .catch(error => {
-      console.log(error);
-      this.setState({
-        isAuth: false
-      });
-    });
-
     axios
     .get('http://localhost:7000/messages')
     .then(response => {
@@ -61,7 +28,6 @@ class ChatPanel extends Component {
         this.addMessage(data.newMessage);
       }
     });
-
   }
 
   addMessage = newMessage => {
@@ -76,12 +42,12 @@ class ChatPanel extends Component {
   sendMessage = () => {
     axios
     .post('http://localhost:7000/messages', {
-      client: this.state.userId,
+      userId: this.props.userId,
       content: this.state.message.trim()
     },
     {
       headers: {
-        Authorization: 'Bearer ' + this.state.token
+        Authorization: 'Bearer ' + this.props.token
       }
     })
     .then(response => {
@@ -97,13 +63,12 @@ class ChatPanel extends Component {
   }
 
   keyPressHandler = event => {
-    if (event.key === 'Enter' && this.state.message.trim() !== ''){
-      this.sendMessage();
-      this.setState({ message: '' });
+    if (event.key === 'Enter'){
+      this.sendMessageHandler();
     }
   }
 
-  clickButtonHandler = () => {
+  sendMessageHandler = () => {
     if (this.state.message.trim() !== ''){
       this.sendMessage();
       this.setState({ message: '' });
@@ -118,7 +83,7 @@ class ChatPanel extends Component {
           {this.state.messages.map((message, index) => (
             <div className="message" key={index}>
               <div className="message-info">
-                <div className="message-info__client">{message.client}</div>
+                <div className="message-info__user">{message.userId}</div>
                 <div className="message-info__time-stamp">{message.timeStamp}</div>
               </div>
               <div className="message-content">
@@ -131,6 +96,7 @@ class ChatPanel extends Component {
     }
     return (
       <div>
+        <button className="chat-button" onClick={this.props.onLogout}>Logout</button>
         {messages}
         <input className="chat-input"
           type="text"
@@ -138,7 +104,7 @@ class ChatPanel extends Component {
           value={this.state.message}
           onChange={this.inputMessageHandler}
           onKeyPress={this.keyPressHandler} />
-        <button className="chat-button" onClick={this.clickButtonHandler}>Send</button>
+        <button className="chat-button" onClick={this.sendMessageHandler}>Send</button>
       </div>
     );
   }

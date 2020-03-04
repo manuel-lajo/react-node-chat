@@ -1,0 +1,45 @@
+
+.login-container {
+  border: 2px solid black;
+  border-radius: 3px;
+  padding: 10px;
+  margin: 25px 5px 5px;
+  box-sizing: border-box;
+}
+
+.login__title {
+  margin-top: 0;
+  padding-left: 10px;
+}
+
+.login__element {
+  padding: 5px;
+}
+
+.chat-input {
+  background-color: rgb(224, 243, 255);
+  outline: none;
+  border: none;
+  border-bottom: 2px solid black;
+  padding: 10px;
+  font: inherit;
+  border-radius: 2px;
+  margin-left: 5px;
+  width: 475px;
+}
+
+.chat-button {
+  background-color: transparent;
+  border: 2px solid black;
+  border-radius: 2px;
+  color: black;
+  outline: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 10px 30px;
+  margin-left: 5px;
+}
+
+.login__error {
+  color: red;
+}
