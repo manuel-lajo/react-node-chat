@@ -45,12 +45,9 @@ class ChatPanel extends Component {
     });
   };
 
-  sendMessage = () => {
+  sendMessage = (userId, content) => {
     axios
-    .post('http://localhost:7000/messages', {
-      userId: this.props.userId,
-      content: this.state.message.trim()
-    },
+    .post('http://localhost:7000/messages', { userId, content },
     {
       headers: { Authorization: 'Bearer ' + this.props.token }
     })
@@ -74,9 +71,21 @@ class ChatPanel extends Component {
 
   sendMessageHandler = () => {
     if (this.state.message.trim() !== ''){
-      this.sendMessage();
+      this.sendMessage(this.props.userId, this.state.message.trim());
       this.setState({ message: '' });
     }
+  }
+
+  callBotHandler = () => {
+    axios
+    .get('http://localhost:8000/stock')
+    .then(response => {
+      // console.log(response.data);
+      this.sendMessage('bot', response.data.message);
+    })
+    .catch(error => {
+      console.log(error);
+    });
   }
 
   render() {
@@ -111,7 +120,8 @@ class ChatPanel extends Component {
           value={this.state.message}
           onChange={this.inputMessageHandler}
           onKeyPress={this.keyPressHandler} />
-        <button className="chat-button" onClick={this.sendMessageHandler}>Send</button>
+          <button className="chat-button" onClick={this.sendMessageHandler}>Send</button>
+          <button className="chat-button" onClick={this.callBotHandler}>call bot</button>
       </div>
     );
   }
