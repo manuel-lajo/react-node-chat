@@ -13,7 +13,10 @@ class ChatPanel extends Component {
 
   componentDidMount() {
     axios
-    .get('http://localhost:7000/messages')
+    .get('http://localhost:7000/messages',
+    {
+      headers: { Authorization: 'Bearer ' + this.props.token }
+    })
     .then(response => {
       this.setState({ messages: response.data, loading: false });
       const element = document.getElementById("id-chat-container")
@@ -35,6 +38,9 @@ class ChatPanel extends Component {
       let messages = [...prevState.messages];
       messages = messages.map(el => ({ ...el }));
       messages.unshift(newMessage);
+      if (messages.length > 50) {
+        messages.pop();
+      }
       return { messages };
     });
   };
@@ -46,9 +52,7 @@ class ChatPanel extends Component {
       content: this.state.message.trim()
     },
     {
-      headers: {
-        Authorization: 'Bearer ' + this.props.token
-      }
+      headers: { Authorization: 'Bearer ' + this.props.token }
     })
     .then(response => {
       console.log(response.data);
@@ -76,9 +80,9 @@ class ChatPanel extends Component {
   }
 
   render() {
-    let messages = <div>loading...</div>;
+    let chatContainer = <div>loading...</div>;
     if (!this.state.loading) {
-      messages = (
+      chatContainer = (
         <div className="chat-container" id="id-chat-container">
           {this.state.messages.map((message, index) => (
             <div className="message" key={index}>
@@ -96,8 +100,11 @@ class ChatPanel extends Component {
     }
     return (
       <div>
-        <button className="chat-button" onClick={this.props.onLogout}>Logout</button>
-        {messages}
+        <div className="header-container">
+          <div className="user-title">{this.props.userId}</div>
+          <button className="chat-button" onClick={this.props.onLogout}>Logout</button>
+        </div>
+        {chatContainer}
         <input className="chat-input"
           type="text"
           placeholder="write message..."

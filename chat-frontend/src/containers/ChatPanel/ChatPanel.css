@@ -3,12 +3,26 @@
   border: 2px solid black;
   border-radius: 3px;
   padding: 10px;
-  margin: 30px 5px 5px;
-  box-sizing: border-box;  
+  margin: 5px;
+  box-sizing: border-box;
   height: 70vh;
   overflow-y: scroll;
   display: flex;
   flex-direction: column-reverse;
+}
+
+.header-container {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-title {
+  color: cornflowerblue;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .message {

@@ -3,7 +3,7 @@ const io = require('../socket');
 
 exports.getMessages = (req, res) => {
   Message.find()
-  .limit(500)
+  .limit(50)
   .sort('-timeStamp')
   .then(messages => {
     messages.sort((a, b) => b.timeStamp - a.timeStamp);
