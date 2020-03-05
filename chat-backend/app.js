@@ -21,6 +21,7 @@ const messageRoutes = require('./routes/message');
 app.use('/auth', authRoutes);
 app.use('/messages', messageRoutes);
 
+
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
