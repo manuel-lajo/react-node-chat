@@ -1,8 +1,9 @@
 const Message = require('../models/message');
 const io = require('../socket');
 
-exports.getMessages = (req, res) => {
-  Message.find()
+exports.getMessages = (req, res, next) => {
+  const chatRoom = +req.query.chatRoom;
+  Message.find({ chatRoom })
   .limit(50)
   .sort('-timeStamp')
   .then(messages => {
@@ -15,7 +16,7 @@ exports.getMessages = (req, res) => {
   });
 };
 
-exports.postMessage = (req, res) => {
+exports.postMessage = (req, res, next) => {
   const newMessage = new Message(req.body);
   newMessage
     .save()

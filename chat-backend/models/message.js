@@ -11,6 +11,10 @@ const messageSchema = new Schema({
     type: String,
     required: true
   },
+  chatRoom: {
+    type: Number,
+    required: true
+  },
   timeStamp: {
     type: Date,
     default: Date.now

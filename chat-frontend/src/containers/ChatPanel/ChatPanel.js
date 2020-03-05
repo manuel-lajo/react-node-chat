@@ -13,25 +13,29 @@ class ChatPanel extends Component {
   };
 
   componentDidMount() {
-    axios
-    .get('http://localhost:7000/messages',
-    {
-      headers: { Authorization: 'Bearer ' + this.props.token }
-    })
-    .then(response => {
-      this.setState({ messages: response.data, loading: false });
-      const element = document.getElementById("id-chat-container")
-      element.scrollTop = element.scrollHeight;
-    })
-    .catch(error => {
-      console.log(error);
-    });
-    const socket = openSocket('http://localhost:7000');
-    socket.on('messages', data => {
-      if (data.action === 'new') {
-        this.addMessage(data.newMessage);
-      }
-    });
+    const chatRoom = +sessionStorage.getItem('defaultChatRoom');
+    axios.get('http://localhost:7000/messages?chatRoom=' + chatRoom,
+      {
+        headers: { Authorization: 'Bearer ' + this.props.token }
+      })
+      .then(response => {
+        this.setState({ messages: response.data, loading: false });
+        const element = document.getElementById('id-chat-container');
+        element.scrollTop = element.scrollHeight;
+
+        const currentButton = document.getElementById('id-chat-button-' + chatRoom);
+        currentButton.classList.add('chat-button--active');
+      })
+      .catch(error => {
+        console.log(error);
+      });
+
+      const socket = openSocket('http://localhost:7000');
+      socket.on('messages', data => {
+        if (data.action === 'new' && data.newMessage.chatRoom === +sessionStorage.getItem('defaultChatRoom')) {
+          this.addMessage(data.newMessage);
+        }
+      });
   }
 
   addMessage = newMessage => {
@@ -47,17 +51,17 @@ class ChatPanel extends Component {
   };
 
   sendMessage = (userId, content) => {
-    axios
-    .post('http://localhost:7000/messages', { userId, content },
-    {
-      headers: { Authorization: 'Bearer ' + this.props.token }
-    })
-    .then(response => {
-      console.log(response.data.message);
-    })
-    .catch(error => {
-      console.log(error);
-    });
+    const chatRoom = +sessionStorage.getItem('defaultChatRoom');
+    axios.post('http://localhost:7000/messages', { userId, content, chatRoom },
+      {
+        headers: { Authorization: 'Bearer ' + this.props.token }
+      })
+      .then(response => {
+        console.log(response.data.message);
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 
   processInputTextHandler = () => {
@@ -78,18 +82,42 @@ class ChatPanel extends Component {
   }
 
   requestStock = stockCode => {
-    axios
-    .get(`http://localhost:8000/stock?stockCode=${stockCode}`)
-    .then(response => {
-      if (response.data.botResponse.indexOf('Error') !== -1) {
-        console.log(`Bot Error: ${response.data.botResponse}`);
-      } else {
-        this.sendMessage('bot', response.data.botResponse);
-      }
-    })
-    .catch(error => {
-      console.log(`Bot Error: ${error}`);
-    });
+    axios.get(`http://localhost:8000/stock?stockCode=${stockCode}`)
+      .then(response => {
+        if (response.data.botResponse.indexOf('Error') !== -1) {
+          console.log(`Bot Error: ${response.data.botResponse}`);
+        } else {
+          this.sendMessage('bot', response.data.botResponse);
+        }
+      })
+      .catch(error => {
+        console.log(`Bot Error: ${error}`);
+      });
+  }
+
+  changeChatRoomHandler = (chatRoom, buttonId) => {
+    sessionStorage.setItem('defaultChatRoom', chatRoom);
+    axios.get('http://localhost:7000/messages?chatRoom=' + chatRoom,
+      {
+        headers: { Authorization: 'Bearer ' + this.props.token }
+      })
+      .then(response => {
+        this.setState({ messages: response.data, loading: false, chatRoom });
+        const element = document.getElementById('id-chat-container');
+        element.scrollTop = element.scrollHeight;
+
+        const button1 = document.getElementById('id-chat-button-1');
+        const button2 = document.getElementById('id-chat-button-2');
+        const button3 = document.getElementById('id-chat-button-3');
+        const currentButton = document.getElementById(buttonId);
+        button1.classList.remove('chat-button--active');
+        button2.classList.remove('chat-button--active');
+        button3.classList.remove('chat-button--active');
+        currentButton.classList.add('chat-button--active');
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 
   inputTextHandler = event => {
@@ -125,7 +153,22 @@ class ChatPanel extends Component {
       <div>
         <div className="header-container">
           <div className="user-title">{this.props.userId}</div>
-          <button className="chat-button" onClick={this.props.onLogout}>Logout</button>
+          <button id="id-chat-button-1"
+            className="chat-button"
+            onClick={() => this.changeChatRoomHandler(1, 'id-chat-button-1')}>
+              Chatroom 1
+          </button>
+          <button id="id-chat-button-2"
+            className="chat-button"
+            onClick={() => this.changeChatRoomHandler(2, 'id-chat-button-2')}>
+              Chatroom 2
+          </button>
+          <button id="id-chat-button-3"
+            className="chat-button"
+            onClick={() => this.changeChatRoomHandler(3, 'id-chat-button-3')}>
+              Chatroom 3
+          </button>
+          <button className="chat-button chat-button--logout" onClick={this.props.onLogout}>Logout</button>
         </div>
         {chatContainer}
         <input className="chat-input"

@@ -4,7 +4,7 @@ const amqp = require('amqplib/callback_api');
 
 const STOCK_QUEUE = 'stockQueue';
 
-exports.getStock = (req, res) => {
+exports.getStock = (req, res, next) => {
   const { stockCode } = req.query;
 
   // call stock API

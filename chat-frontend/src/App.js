@@ -37,13 +37,14 @@ class App extends Component {
       return { token: response.data.token, userId: response.data.userId };
     })
     .then(loginData => {
+      sessionStorage.setItem('token', loginData.token);
+      sessionStorage.setItem('userId', loginData.userId);
+      sessionStorage.setItem('defaultChatRoom', 1);
       this.setState({
         isAuth: true,
         token: loginData.token,
         userId: loginData.userId
       });
-      sessionStorage.setItem('token', loginData.token);
-      sessionStorage.setItem('userId', loginData.userId);
     })
     .catch(error => {
       console.log(error);
@@ -57,6 +58,7 @@ class App extends Component {
     this.setState({ isAuth: false, token: null, userId: null });
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('userId');
+    sessionStorage.removeItem('defaultChatRoom');
   };
 
   render() {

@@ -61,6 +61,14 @@
   margin-left: 5px;
 }
 
+.chat-button--active {
+  background-color: lightgray;
+}
+
+.chat-button--logout {
+  background-color: rgb(224, 243, 255);;
+}
+
 .chat-input {
   background-color: rgb(224, 243, 255);
   outline: none;
