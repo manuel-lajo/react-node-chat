@@ -1,7 +1,4 @@
 const express = require('express');
-// const axios = require('axios');
-// const neatCsv = require('neat-csv');
-// const amqp = require('amqplib/callback_api');
 
 const app = express();
 
@@ -13,14 +10,11 @@ app.use((req, res, next) => {
   next();
 })
 
-// app.get('/stock', (req, res, next) => {
-// });
-
 const botRoutes = require('./routes/bot');
 
 app.use('/stock', botRoutes);
 
-
+// main error handler
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;

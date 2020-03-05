@@ -16,48 +16,54 @@ exports.getStock = (req, res) => {
     const closeValue = csvContent[0].Close;
 
     // receiver
-    amqp.connect('amqp://localhost', function(errorConnection, connection) {
+    amqp.connect('amqp://localhost', (errorConnection, connection) => {
       if (errorConnection) {
-        throw errorConnection;
+        const error = new Error(errorConnection.message || 'There was an error with receiver amqp connect method.');
+        error.statusCode = errorConnection || 500;
+        throw error;
       }
 
-      connection.createChannel(function(errorChannel, channel) {
+      connection.createChannel((errorChannel, channel) => {
         if (errorChannel) {
-          throw errorChannel;
+          const error = new Error(errorChannel.message || 'There was an error with receiver createChannel method.');
+          error.statusCode = errorChannel || 500;
+          throw error;
         }
 
         const queue = STOCK_QUEUE;
-        let msg;
-        if (closeValue === 'N/D') {
-          msg = `Error: there was a problem with received stock_code: ${stockCode}`;
-        } else {
-          msg = `${stockCode.toUpperCase()} quote is $${closeValue} per share`;
-        }
         channel.assertQueue(queue, { durable: false });
+
+        let msg = closeValue === 'N/D'
+          ? `Error: there was a problem with received stock_code: ${stockCode}.`
+          : `${stockCode.toUpperCase()} quote is $${closeValue} per share`;
 
         channel.sendToQueue(queue, Buffer.from(msg));
       });
 
-      setTimeout(function() {
+      setTimeout(() => {
         connection.close();
       }, 500);
     });
 
     // sender
-    amqp.connect('amqp://localhost', function(errorConnection, connection) {
+    amqp.connect('amqp://localhost', (errorConnection, connection) => {
       if (errorConnection) {
-        throw errorConnection;
+        const error = new Error(errorConnection.message || 'There was an error with sender amqp connect method.');
+        error.statusCode = errorConnection || 500;
+        throw error;
       }
 
-      connection.createChannel(function(errorChannel, channel) {
+      connection.createChannel((errorChannel, channel) => {
         if (errorChannel) {
-          throw errorChannel;
+          const error = new Error(errorChannel.message || 'There was an error with sender createChannel method.');
+          error.statusCode = errorChannel || 500;
+          throw error;
         }
 
         const queue = STOCK_QUEUE;
         channel.assertQueue(queue, { durable: false });
 
-        channel.consume(queue, function(msg) {
+        channel.consume(queue, msg => {
             connection.close();
             res.status(200).json({ botResponse: msg.content.toString() });
           },
@@ -69,6 +75,7 @@ exports.getStock = (req, res) => {
 
   })
   .catch(error => {
-    console.log(error);
+    error.statusCode = error.statusCode || 500;
+    next(error);
   });
 };

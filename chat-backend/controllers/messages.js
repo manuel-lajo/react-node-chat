@@ -9,8 +9,9 @@ exports.getMessages = (req, res) => {
     messages.sort((a, b) => b.timeStamp - a.timeStamp);
     res.json(messages)
   })
-  .catch(err => {
-    console.log(err);
+  .catch(error => {
+    error.statusCode = error.statusCode || 500;
+    next(error);
   });
 };
 
@@ -22,7 +23,8 @@ exports.postMessage = (req, res) => {
       io.getIO().emit('messages', { action: 'new', newMessage });
       res.status(200).json({ message: 'Message stored successfully.' });
     })
-    .catch(err => {
-      console.log(err);
+    .catch(error => {
+      error.statusCode = error.statusCode || 500;
+      next(error);
     });
 };

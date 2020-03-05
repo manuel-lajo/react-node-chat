@@ -21,7 +21,7 @@ const messageRoutes = require('./routes/message');
 app.use('/auth', authRoutes);
 app.use('/messages', messageRoutes);
 
-
+// main error handler
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
@@ -39,6 +39,6 @@ mongoose
     const server = app.listen(7000);
     io.init(server);
   })
-  .catch(err => {
-    console.log(err);
+  .catch(error => {
+    console.log(error);
   });

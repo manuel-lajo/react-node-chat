@@ -18,11 +18,9 @@ exports.signup = (req, res, next) => {
     .then(result => {
       res.status(201).json({ message: 'User successfully created', userId: result._id });
     })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    .catch(error => {
+      error.statusCode = error.statusCode || 500;
+      next(error);
     });
 };
 
@@ -55,10 +53,8 @@ exports.login = (req, res, next) => {
       );
       res.status(200).json({ token, userId });
     })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    .catch(error => {
+      error.statusCode = error.statusCode || 500;
+      next(error);
     });
 };
