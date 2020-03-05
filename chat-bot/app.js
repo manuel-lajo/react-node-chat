@@ -1,5 +1,5 @@
 const express = require('express');
-const request = require('request');
+const axios = require('axios');
 const neatCsv = require('neat-csv');
 const amqp = require('amqplib/callback_api');
 
@@ -17,12 +17,11 @@ app.get('/stock', (req, res, next) => {
   const { stockCode } = req.query;
 
   // call stock API
-  request(`https://stooq.com/q/l/?s=${stockCode}&f=sd2t2ohlcv&h&e=csv`, async (error, response, body) => {
-    if (error) {
-      throw error;
-    }
-
-    const csvContent = await neatCsv(body);
+  axios.get(`https://stooq.com/q/l/?s=${stockCode}&f=sd2t2ohlcv&h&e=csv`)
+  .then(response => {
+    return neatCsv(response.data);
+  })
+  .then(csvContent => {
     const closeValue = csvContent[0].Close;
 
     // receiver
@@ -39,7 +38,7 @@ app.get('/stock', (req, res, next) => {
         const queue = 'stockQueue';
         let msg;
         if (closeValue === 'N/D') {
-          msg = `Error: there was an error with received stock_code: ${stockCode}`;
+          msg = `Error: there was a problem with received stock_code: ${stockCode}`;
         } else {
           msg = `${stockCode.toUpperCase()} quote is $${closeValue} per share`;
         }
@@ -77,7 +76,11 @@ app.get('/stock', (req, res, next) => {
       });
     });
 
+  })
+  .catch(error => {
+    console.log(error);
   });
+
 
 });
 
