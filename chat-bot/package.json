@@ -5,7 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "amqplib": "^0.5.5",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "neat-csv": "^5.2.0",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"

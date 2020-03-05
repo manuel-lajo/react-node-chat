@@ -76,11 +76,10 @@ class ChatPanel extends Component {
     }
   }
 
-  callBotHandler = () => {
+  callBotHandler = stockCode => {
     axios
-    .get('http://localhost:8000/stock')
+    .get(`http://localhost:8000/stock?stockCode=${stockCode}`)
     .then(response => {
-      // console.log(response.data);
       this.sendMessage('bot', response.data.message);
     })
     .catch(error => {
@@ -121,7 +120,7 @@ class ChatPanel extends Component {
           onChange={this.inputMessageHandler}
           onKeyPress={this.keyPressHandler} />
           <button className="chat-button" onClick={this.sendMessageHandler}>Send</button>
-          <button className="chat-button" onClick={this.callBotHandler}>call bot</button>
+          <button className="chat-button" onClick={() => this.callBotHandler('aapl.us')}>call bot</button>
       </div>
     );
   }
