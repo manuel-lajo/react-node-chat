@@ -19,7 +19,7 @@ app.get('/stock', (req, res, next) => {
   // call stock API
   request(`https://stooq.com/q/l/?s=${stockCode}&f=sd2t2ohlcv&h&e=csv`, async (error, response, body) => {
     if (error) {
-      console.log(error);
+      throw error;
     }
 
     const csvContent = await neatCsv(body);
@@ -37,7 +37,12 @@ app.get('/stock', (req, res, next) => {
         }
 
         const queue = 'stockQueue';
-        const msg = `${stockCode.toUpperCase()} quote is $${closeValue} per share`;
+        let msg;
+        if (closeValue === 'N/D') {
+          msg = `Error: there was an error with received stock_code: ${stockCode}`;
+        } else {
+          msg = `${stockCode.toUpperCase()} quote is $${closeValue} per share`;
+        }
         channel.assertQueue(queue, { durable: false });
 
         channel.sendToQueue(queue, Buffer.from(msg));
@@ -64,7 +69,7 @@ app.get('/stock', (req, res, next) => {
 
         channel.consume(queue, function(msg) {
             connection.close();
-            res.status(200).json({ message: msg.content.toString() });
+            res.status(200).json({ botResponse: msg.content.toString() });
           },
           { noAck: true }
         );

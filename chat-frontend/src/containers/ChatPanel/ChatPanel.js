@@ -7,8 +7,9 @@ import './ChatPanel.css';
 class ChatPanel extends Component {
   state = {
     messages: [],
-    message: '',
-    loading: true
+    inputText: '',
+    loading: true,
+    stockCommand: '/stock='
   };
 
   componentDidMount() {
@@ -52,39 +53,53 @@ class ChatPanel extends Component {
       headers: { Authorization: 'Bearer ' + this.props.token }
     })
     .then(response => {
-      console.log(response.data);
+      console.log(response.data.message);
     })
     .catch(error => {
       console.log(error);
     });
   }
 
-  inputMessageHandler = event => {
-    this.setState({ message: event.target.value });
+  processInputTextHandler = () => {
+    const trimedText = this.state.inputText.trim();
+    if (trimedText !== '') {
+      // verify if inputText is a command
+      const stockCommand = this.state.stockCommand;
+      const commandIndex = trimedText.indexOf(stockCommand);
+      if (commandIndex === 0) {
+        const stockCode = trimedText.replace(stockCommand, '');
+        this.requestStock(stockCode);
+      } else {
+        this.sendMessage(this.props.userId, trimedText);
+      }
+
+      this.setState({ inputText: '' });
+    }
+  }
+
+  requestStock = stockCode => {
+    axios
+    .get(`http://localhost:8000/stock?stockCode=${stockCode}`)
+    .then(response => {
+      if (response.data.botResponse.indexOf('Error') !== -1) {
+        console.log(`Bot Error: ${response.data.botResponse}`);
+      } else {
+        this.sendMessage('bot', response.data.botResponse);
+      }
+    })
+    .catch(error => {
+      console.log(`Bot Error: ${error}`);
+    });
+  }
+
+  inputTextHandler = event => {
+    this.setState({ inputText: event.target.value });
   }
 
   keyPressHandler = event => {
     if (event.key === 'Enter'){
-      this.sendMessageHandler();
+      this.processInputTextHandler();
     }
-  }
-
-  sendMessageHandler = () => {
-    if (this.state.message.trim() !== ''){
-      this.sendMessage(this.props.userId, this.state.message.trim());
-      this.setState({ message: '' });
-    }
-  }
-
-  callBotHandler = stockCode => {
-    axios
-    .get(`http://localhost:8000/stock?stockCode=${stockCode}`)
-    .then(response => {
-      this.sendMessage('bot', response.data.message);
-    })
-    .catch(error => {
-      console.log(error);
-    });
   }
 
   render() {
@@ -116,11 +131,10 @@ class ChatPanel extends Component {
         <input className="chat-input"
           type="text"
           placeholder="write message..."
-          value={this.state.message}
-          onChange={this.inputMessageHandler}
+          value={this.state.inputText}
+          onChange={this.inputTextHandler}
           onKeyPress={this.keyPressHandler} />
-          <button className="chat-button" onClick={this.sendMessageHandler}>Send</button>
-          <button className="chat-button" onClick={() => this.callBotHandler('aapl.us')}>call bot</button>
+          <button className="chat-button" onClick={this.processInputTextHandler}>Send</button>
       </div>
     );
   }
